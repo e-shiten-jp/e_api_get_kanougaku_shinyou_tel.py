@@ -7,13 +7,14 @@
 # Python 3.11.2 / debian12
 # API v4r7 で動作確認
 # 立花証券ｅ支店ＡＰＩ利用のサンプルコード
+#
 # 機能: 信用新規建可能額の取得
 #
 # 利用方法: 
 # 事前に「e_api_login_tel.py」を実行して、仮想URL等を取得しておいてください。
 #
 # == ご注意: ========================================
-#   本番環境にに接続した場合、実際に市場に注文を出せます。
+#   本番環境にに接続した場合、実際に市場に注文が出ます。
 #   市場で約定した場合取り消せません。
 # ==================================================
 #
@@ -56,6 +57,7 @@ class class_def_login_property:
         self.sUrlPrice = ''         # price用仮想URL
         self.sUrlEvent = ''         # event用仮想URL
         self.sZyoutoekiKazeiC = ''  # 8.譲渡益課税区分    1：特定  3：一般  5：NISA     ログインの返信データで設定済み。 
+        self.sSinyouKouzaKubun = '' # 信用取引口座開設区分  0：未開設  1：開設
         self.sSecondPassword = ''   # 22.第二パスワード  APIでは第２暗証番号を省略できない。 関連資料:「立花証券・e支店・API、インターフェース概要」の「3-2.ログイン、ログアウト」参照
         self.sJsonOfmt = ''         # 返り値の表示形式指定
         
@@ -290,16 +292,17 @@ def func_get_acconut_info(fname, class_account_property):
 # 機能： ログイン情報をファイルから取得する
 # 引数1: ログイン情報を保存したファイル名（fname_login_response = "e_api_login_response.txt"）
 # 引数2: ログインデータ型（class_def_login_property型）
-def func_get_login_info(str_fname, class_login_property):
+def func_get_login_info(str_fname, my_login_property):
     str_login_respons = func_read_from_file(str_fname)
     dic_login_respons = json.loads(str_login_respons)
-    class_login_property.sUrlRequest = dic_login_respons.get('sUrlRequest')                # request用仮想URL
-    class_login_property.sUrlMaster = dic_login_respons.get('sUrlMaster')                  # master用仮想URL
-    class_login_property.sUrlPrice = dic_login_respons.get('sUrlPrice')                    # price用仮想URL
-    class_login_property.sUrlEvent = dic_login_respons.get('sUrlEvent')                    # event用仮想URL
-    class_login_property.sUrlEventWebSocket = dic_login_respons.get('sUrlEventWebSocket')  # webxocket用仮想URL
-    class_login_property.sZyoutoekiKazeiC = dic_login_respons.get('sZyoutoekiKazeiC')      # 8.譲渡益課税区分    1：特定  3：一般  5：NISA     ログインの返信データで設定済み。 
-    
+    my_login_property.sUrlRequest = dic_login_respons.get('sUrlRequest')                # request用仮想URL
+    my_login_property.sUrlMaster = dic_login_respons.get('sUrlMaster')                  # master用仮想URL
+    my_login_property.sUrlPrice = dic_login_respons.get('sUrlPrice')                    # price用仮想URL
+    my_login_property.sUrlEvent = dic_login_respons.get('sUrlEvent')                    # event用仮想URL
+    my_login_property.sUrlEventWebSocket = dic_login_respons.get('sUrlEventWebSocket')  # webxocket用仮想URL
+    my_login_property.sZyoutoekiKazeiC = dic_login_respons.get('sZyoutoekiKazeiC')      # 8.譲渡益課税区分    1：特定  3：一般  5：NISA     ログインの返信データで設定済み。 
+    my_login_property.sZyoutoekiKazeiC = dic_login_respons.get('sSinyouKouzaKubun')     # 信用取引口座開設区分  0：未開設  1：開設     ログインの返信データで設定済み。 
+
 
 # 機能： p_noをファイルから取得する
 # 引数1: p_noを保存したファイル名（fname_info_p_no = "e_api_info_p_no.txt"）
@@ -338,8 +341,6 @@ def func_save_p_no(str_fname_output, int_p_no):
     print('ファイル名:', str_fname_output)
 
 #--- 以上 共通コード -------------------------------------------------
-
-
 
 
 # 参考資料（必ず最新の資料を参照してください。）
@@ -408,15 +409,6 @@ def func_kanougaku_shinyou(int_p_no, class_login_property):
 
 
 
-
-
-
-
-
-
-
-
-    
 # ======================================================================================================
 # ==== プログラム始点 =================================================================================
 # ======================================================================================================
@@ -447,19 +439,19 @@ if __name__ == "__main__":
     
     print()
     print('-- 信用 新規建 可能額 の照会 -------------------------------------------------------------')
-    json_return = func_kanougaku_shinyou(my_login_property.p_no, my_login_property)
+    dic_return = func_kanougaku_shinyou(my_login_property.p_no, my_login_property)
     # 戻り値の解説は、マニュアル「立花証券・ｅ支店・ＡＰＩ（ｖ〇）、REQUEST I/F、機能毎引数項目仕様」
     # p13/46 No.10 CLMZanShinkiKanoIjiritu を参照してください。
         
-    print("更新日時= ", json_return.get("sSummaryUpdate"))           # 更新日時
-    print("信用新規建可能額= ", json_return.get("sSummarySinyouSinkidate"))  # 信用新規建可能額
-    print("委託保証金率= ", json_return.get("sItakuhosyoukin"))            # 委託保証金率
+    print("更新日時= ", dic_return.get("sSummaryUpdate"))           # 更新日時
+    print("信用新規建可能額= ", dic_return.get("sSummarySinyouSinkidate"))  # 信用新規建可能額
+    print("委託保証金率= ", dic_return.get("sItakuhosyoukin"))            # 委託保証金率
 
     print()    
-    print('p_errno', json_return.get('p_errno'))
-    print('p_err', json_return.get('p_err'))
+    print('p_errno', dic_return.get('p_errno'))
+    print('p_err', dic_return.get('p_err'))
     # 仮想URLが無効になっている場合
-    if json_return.get('p_errno') == '2':
+    if dic_return.get('p_errno') == '2':
         print()    
         print("仮想URLが有効ではありません。")
         print("電話認証＋e_api_login_tel.py実行")
@@ -469,6 +461,4 @@ if __name__ == "__main__":
     print()    
     # "p_no"を保存する。
     func_save_p_no(fname_info_p_no, my_login_property.p_no)
-       
-
-
+    
